@@ -162,3 +162,226 @@ def delete_product(pid):
     cur.execute("DELETE FROM products WHERE id=?",(pid,))
     conn.commit()
     conn.close()
+def get_all_customers():
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id,name,phone
+        FROM customers
+        ORDER BY name
+    """)
+
+    data = cur.fetchall()
+
+    conn.close()
+
+    return data
+
+
+def get_customer_phone(customer_id):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT phone FROM customers WHERE id=?",
+        (customer_id,)
+    )
+
+    row = cur.fetchone()
+
+    conn.close()
+
+    if row:
+        return row[0]
+
+    return ""
+
+
+def get_all_phones():
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT phone FROM customers"
+    )
+
+    phones = []
+
+    for row in cur.fetchall():
+
+        if row[0]:
+            phones.append(row[0])
+
+    conn.close()
+
+    return phones
+    # ===========================
+#          INVOICES
+# ===========================
+
+def init_invoice_tables():
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS invoices(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id INTEGER,
+        invoice_date TEXT,
+        total REAL DEFAULT 0,
+        discount REAL DEFAULT 0,
+        transport REAL DEFAULT 0,
+        final_total REAL DEFAULT 0,
+        description TEXT
+    )
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS invoice_items(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        invoice_id INTEGER,
+        product_id INTEGER,
+        product_name TEXT,
+        qty REAL,
+        unit TEXT,
+        price REAL,
+        total REAL
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+init_invoice_tables()
+
+
+def add_invoice(
+    customer_id,
+    invoice_date,
+    total,
+    discount,
+    transport,
+    final_total,
+    description=""
+):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+    INSERT INTO invoices(
+        customer_id,
+        invoice_date,
+        total,
+        discount,
+        transport,
+        final_total,
+        description
+    )
+    VALUES(?,?,?,?,?,?,?)
+    """,(
+        customer_id,
+        invoice_date,
+        total,
+        discount,
+        transport,
+        final_total,
+        description
+    ))
+
+    invoice_id = cur.lastrowid
+
+    conn.commit()
+    conn.close()
+
+    return invoice_id
+
+
+def add_invoice_item(
+    invoice_id,
+    product_id,
+    product_name,
+    qty,
+    unit,
+    price,
+    total
+):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+    INSERT INTO invoice_items(
+        invoice_id,
+        product_id,
+        product_name,
+        qty,
+        unit,
+        price,
+        total
+    )
+    VALUES(?,?,?,?,?,?,?)
+    """,(
+        invoice_id,
+        product_id,
+        product_name,
+        qty,
+        unit,
+        price,
+        total
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+def get_invoices():
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+    SELECT
+        invoices.id,
+        customers.name,
+        invoice_date,
+        final_total
+    FROM invoices
+    LEFT JOIN customers
+    ON customers.id=invoices.customer_id
+    ORDER BY invoices.id DESC
+    """)
+
+    data = cur.fetchall()
+
+    conn.close()
+
+    return data
+
+
+def get_invoice_items(invoice_id):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+    SELECT
+        product_name,
+        qty,
+        unit,
+        price,
+        total
+    FROM invoice_items
+    WHERE invoice_id=?
+    """,(invoice_id,))
+
+    data = cur.fetchall()
+
+    conn.close()
+
+    return data

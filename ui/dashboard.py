@@ -11,6 +11,7 @@ from PySide6.QtCore import Qt
 
 from ui.customers import CustomersPage
 from ui.products import ProductsPage
+from ui.sms import SMSPage
 
 
 class Dashboard(QMainWindow):
@@ -27,6 +28,7 @@ class Dashboard(QMainWindow):
         layout = QHBoxLayout(central)
 
         # ---------- منوی سمت چپ ----------
+
         menu = QVBoxLayout()
 
         title = QLabel("CRM RS")
@@ -41,6 +43,7 @@ class Dashboard(QMainWindow):
         btn_invoice = QPushButton("💰 فاکتورها")
         btn_cut = QPushButton("✂️ برش")
         btn_send = QPushButton("🚚 ارسال")
+        btn_sms = QPushButton("📨 ارسال پیامک")
 
         menu.addWidget(title)
         menu.addSpacing(20)
@@ -51,6 +54,7 @@ class Dashboard(QMainWindow):
         menu.addWidget(btn_invoice)
         menu.addWidget(btn_cut)
         menu.addWidget(btn_send)
+        menu.addWidget(btn_sms)
 
         menu.addStretch()
 
@@ -69,10 +73,12 @@ class Dashboard(QMainWindow):
 
         self.customers = CustomersPage()
         self.products = ProductsPage()
+        self.sms = SMSPage()
 
         self.stack.addWidget(home)
         self.stack.addWidget(self.customers)
         self.stack.addWidget(self.products)
+        self.stack.addWidget(self.sms)
 
         layout.addWidget(self.stack, 4)
 
@@ -88,4 +94,8 @@ class Dashboard(QMainWindow):
 
         btn_products.clicked.connect(
             lambda: self.stack.setCurrentIndex(2)
+        )
+
+        btn_sms.clicked.connect(
+            lambda: self.stack.setCurrentIndex(3)
         )
